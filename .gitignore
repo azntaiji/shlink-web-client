@@ -11,3 +11,12 @@
 
 npm-debug.log*
 public/servers.json*
+
+# vscode
+*.code-workspace
+
+# macos
+.DS_Store
+
+# Internal documentation
+/etc
