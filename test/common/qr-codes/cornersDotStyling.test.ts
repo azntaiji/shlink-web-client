@@ -1,3 +1,4 @@
+import './setup';
 import type QRCodeStyling from 'qr-code-styling';
 import type { Options } from 'qr-code-styling';
 import { inheritedInnerEyeColor, toCornersDotOptions } from '../../../src/common/qr-codes/cornersDotStyling';

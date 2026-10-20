@@ -1,3 +1,4 @@
+import './setup';
 import { ShlinkWebComponent } from '@shlinkio/shlink-web-component';
 import type { ShlinkApiClient } from '@shlinkio/shlink-web-component/api-contract';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';

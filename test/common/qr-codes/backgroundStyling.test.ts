@@ -1,3 +1,4 @@
+import './setup';
 import type QRCodeStyling from 'qr-code-styling';
 import { defaultBackgroundStyling, toBackgroundOptions } from '../../../src/common/qr-codes/backgroundStyling';
 import { renderQrCode } from '../../../src/common/qr-codes/renderQrCode';

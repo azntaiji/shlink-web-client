@@ -1,9 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
-import { afterEach } from 'vitest';
 
-// Clear all mocks and cleanup DOM after every test
+// These QR tests retain DOM-based Testing Library assertions alongside upstream's native browser tests.
 afterEach(() => {
-  vi.clearAllMocks();
   cleanup();
 });

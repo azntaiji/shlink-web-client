@@ -1,3 +1,4 @@
+import './setup';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { ColorControlProps } from '../../../src/common/qr-codes/DotsOptions';

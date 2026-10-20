@@ -1,3 +1,4 @@
+import './setup';
 import jsQR from 'jsqr';
 import QRCodeStyling from 'qr-code-styling';
 import type { Options } from 'qr-code-styling';

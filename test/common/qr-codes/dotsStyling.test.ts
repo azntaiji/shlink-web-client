@@ -1,3 +1,4 @@
+import './setup';
 import QRCodeStyling from 'qr-code-styling';
 import type { DotsStyling } from '../../../src/common/qr-codes/dotsStyling';
 import { defaultDotsStyling, toDotsOptions } from '../../../src/common/qr-codes/dotsStyling';
