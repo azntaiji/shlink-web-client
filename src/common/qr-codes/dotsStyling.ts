@@ -7,6 +7,15 @@ export type DotsStyling = ColorStyling & {
   style: DotType;
 };
 
+export const dotStyles = {
+  square: 'Square',
+  dots: 'Dots',
+  rounded: 'Rounded',
+  'extra-rounded': 'Extra Rounded',
+  classy: 'Classy',
+  'classy-rounded': 'Classy Rounded',
+} as const;
+
 export const defaultDotsStyling: DotsStyling = {
   style: 'square',
   colorType: 'single',

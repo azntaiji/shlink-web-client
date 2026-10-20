@@ -1,6 +1,7 @@
 import type { ExtensionFunction, Options } from 'qr-code-styling';
 import type { ColorStyling } from './colorStyling';
 import { toGradient } from './colorStyling';
+import { inheritedInnerEyeColor } from './cornersDotStyling';
 
 export type CornersSquareStyling = {
   style?: 'square' | 'dot' | 'extra-rounded';
@@ -15,7 +16,10 @@ export const toCornersSquareOptions = (styling: CornersSquareStyling): Options['
 });
 
 /** The library normally lets the inner eye inherit the outer eye's color. Keep it on the dots' paint layer instead. */
-export const preserveInnerEyeColor: ExtensionFunction = (svg) => {
+export const preserveInnerEyeColor: ExtensionFunction = (svg, options) => {
+  if (options.cornersDotOptions?.color !== inheritedInnerEyeColor || options.cornersDotOptions.gradient) {
+    return;
+  }
   const fill = svg.querySelector('rect[clip-path*="clip-path-dot-color-"]')?.getAttribute('fill');
   if (!fill) {
     return;

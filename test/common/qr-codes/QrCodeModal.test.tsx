@@ -80,7 +80,7 @@ describe('QR modal integration', () => {
       expect(update).toHaveBeenLastCalledWith(
         expect.objectContaining({
           cornersSquareOptions: { type: 'dot', color: '#ff0000', gradient: undefined },
-          cornersDotOptions: { color: '#000000' },
+          cornersDotOptions: { type: undefined, color: 'inherit', gradient: undefined },
           dotsOptions: { type: 'classy-rounded', color: '#000000', gradient: undefined },
         }),
       ),
@@ -108,6 +108,69 @@ describe('QR modal integration', () => {
     );
     await user.selectOptions(corners.getByLabelText('Corners Square Style'), 'square');
     await user.click(corners.getByRole('radio', { name: 'Color gradient' }));
+    await user.click(modal.getByText('Corners Square Options'));
+    await user.click(modal.getByText('Corners Dot Options'));
+    const inner = within(modal.getByText('Corners Dot Options').closest('details')!);
+    const beforeInner = update.mock.contexts.at(-1) as QRCodeStyling;
+    const beforePng = (await beforeInner.getRawData('png')) as Blob;
+    await user.selectOptions(inner.getByLabelText('Corners Dot Style'), 'dots');
+    fireEvent.change(inner.getByLabelText('Corners Dot Color picker'), { target: { value: '#ff00ff' } });
+    await waitFor(() =>
+      expect(update).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          cornersDotOptions: { type: 'dots', color: '#ff00ff', gradient: undefined },
+          cornersSquareOptions: expect.objectContaining({
+            type: 'square',
+            gradient: expect.objectContaining({ type: 'linear' }),
+          }),
+        }),
+      ),
+    );
+    const afterInner = update.mock.contexts.at(-1) as QRCodeStyling;
+    expect(afterInner).not.toBe(beforeInner);
+    const afterPng = (await afterInner.getRawData('png')) as Blob;
+    const beforeBytes = new Uint8Array(await beforePng.arrayBuffer());
+    const afterBytes = new Uint8Array(await afterPng.arrayBuffer());
+    expect(
+      beforeBytes.length !== afterBytes.length || afterBytes.some((byte, index) => byte !== beforeBytes[index]),
+    ).toBe(true);
+    await user.click(inner.getByRole('radio', { name: 'Color gradient' }));
+    await user.click(inner.getByRole('radio', { name: 'Radial' }));
+    await waitFor(() =>
+      expect(update).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          cornersDotOptions: expect.objectContaining({
+            type: 'dots',
+            gradient: expect.objectContaining({ type: 'radial' }),
+          }),
+        }),
+      ),
+    );
+    await user.click(inner.getByRole('radio', { name: 'Linear' }));
+    fireEvent.change(inner.getByRole('spinbutton'), { target: { value: '-45' } });
+    await waitFor(() =>
+      expect(update).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          cornersDotOptions: expect.objectContaining({ gradient: expect.objectContaining({ rotation: -Math.PI / 4 }) }),
+        }),
+      ),
+    );
+    await page.viewport(1100, 1100);
+    await page.screenshot({ path: '../../../reports/qr-code-corners-dot-options.png' });
+    await user.click(inner.getByRole('button', { name: 'Clear' }));
+    await waitFor(() =>
+      expect(update).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          cornersDotOptions: { type: undefined, color: 'inherit', gradient: undefined },
+          cornersSquareOptions: expect.objectContaining({
+            type: 'square',
+            gradient: expect.objectContaining({ type: 'linear' }),
+          }),
+        }),
+      ),
+    );
+    await user.selectOptions(inner.getByLabelText('Corners Dot Style'), 'classy');
+    fireEvent.change(inner.getByLabelText('Corners Dot Color picker'), { target: { value: '#ff00ff' } });
     await user.click(modal.getByRole('button', { name: /close/i }));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     await user.click(within(row).getByRole('button', { name: 'Options' }));
@@ -122,6 +185,10 @@ describe('QR modal integration', () => {
     const resetCorners = within(reopened.getByText('Corners Square Options').closest('details')!);
     expect(resetCorners.getByLabelText('Corners Square Style')).toHaveValue('');
     expect(resetCorners.getByRole('button', { name: 'Clear' })).toBeDisabled();
+    await user.click(reopened.getByText('Corners Dot Options'));
+    const resetInner = within(reopened.getByText('Corners Dot Options').closest('details')!);
+    expect(resetInner.getByLabelText('Corners Dot Style')).toHaveValue('square');
+    expect(resetInner.getByRole('button', { name: 'Clear' })).toBeDisabled();
     update.mockRestore();
   });
 });

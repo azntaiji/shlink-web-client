@@ -1,6 +1,7 @@
 import { LabelledSelect } from '@shlinkio/shlink-frontend-kit';
 import type { ComponentType, Dispatch, SetStateAction } from 'react';
 import type { DotsStyling } from './dotsStyling';
+import { dotStyles } from './dotsStyling';
 import { QrColorOptions } from './QrColorOptions';
 
 export type ColorControlProps = {
@@ -17,15 +18,6 @@ export type DotsOptionsProps = {
   ColorControl: ComponentType<ColorControlProps>;
 };
 
-const styles = {
-  square: 'Square',
-  dots: 'Dots',
-  rounded: 'Rounded',
-  'extra-rounded': 'Extra Rounded',
-  classy: 'Classy',
-  'classy-rounded': 'Classy Rounded',
-} as const;
-
 export const DotsOptions = ({ styling, setStyling, color, onColorChange, ColorControl }: DotsOptionsProps) => {
   const update = (patch: Partial<DotsStyling>) => setStyling((previous) => ({ ...previous, ...patch }));
 
@@ -38,7 +30,7 @@ export const DotsOptions = ({ styling, setStyling, color, onColorChange, ColorCo
           value={styling.style}
           onChange={(event) => update({ style: event.target.value as DotsStyling['style'] })}
         >
-          {Object.entries(styles).map(([value, label]) => (
+          {Object.entries(dotStyles).map(([value, label]) => (
             <option key={value} value={value}>
               {label}
             </option>
