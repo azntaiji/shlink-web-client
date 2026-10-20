@@ -20,3 +20,7 @@ public/servers.json*
 
 # Internal documentation
 /etc
+
+# agent files
+AGENTS.md
+CLAUDE.md
