@@ -205,3 +205,17 @@ Validation after the spacing adjustment: all 57 targeted frame, logo, and modal 
 ## Modal correction default
 
 The QR modal now starts at High (`H`) error correction and resets to H when reopened. Other configured QR defaults are preserved. Correction remains editable without a logo; adding a logo locks H, and clearing it restores the selection made during that modal session.
+
+## Wider QR modal layout
+
+The QR modal is capped at 1280 px, with viewport padding preserved. At desktop widths (1024 px and above), the preview occupies about one third of the content and settings occupy two thirds. Settings use two columns for the accordions, while correction and export controls span both columns. The preview aligns to the top and remains sticky while scrolling. SVG/canvas previews scale to the available display width without changing export dimensions.
+
+Below the desktop breakpoint, settings and preview remain stacked, with one settings column. Browser regression checks verify the 1280 px cap, settings/preview proportions, side-by-side desktop accordions, and mobile layout without horizontal overflow. Desktop/mobile screenshots are generated at `reports/qr-code-modal-wide.png` and `reports/qr-code-modal-mobile.png`. Production build (including TypeScript), style checks, and adapter lint/format checks pass.
+
+### Section order and initial frame
+
+The modal sections now follow this DOM/keyboard order (row by row on desktop): Dots Options, Frame, Corners Square Options, Corners Dot Options, Background Options. Select logo / Clear logo sits immediately after error correction and before the accordions. The modal starts with Enable frame checked and Circle selected, and restores those defaults after closing/reopening; users can still disable the frame or select Square. The low-level renderer remains unframed when called without frame settings.
+
+On mobile, the QR preview appears above settings. Desktop retains the sticky preview beside the two-column settings layout. All 105 QR tests pass, including section order, logo placement, initial/reset defaults, mobile preview order, and horizontal-overflow checks. Style checks, adapter lint/format checks, TypeScript/production build, and diff checks pass. Updated desktop and mobile screenshots use the paths above.
+
+The Frame accordion is expanded by default, alongside Dots Options, including after reopening the modal.

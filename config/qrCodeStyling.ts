@@ -32,12 +32,10 @@ export const qrCodeStyling = (): Plugin => ({
     const state = fileURLToPath(new URL('../src/common/qr-codes/useQrStyling.ts', import.meta.url));
     const renderer = fileURLToPath(new URL('../src/common/qr-codes/renderQrCode.ts', import.meta.url));
     const backgroundControls = fileURLToPath(new URL('../src/common/qr-codes/BackgroundOptions.tsx', import.meta.url));
-    const frameControls = fileURLToPath(new URL('../src/common/qr-codes/FrameOptions.tsx', import.meta.url));
     source =
       `import { QrStylingOptions as ShlinkQrStylingOptions } from ${JSON.stringify(controls)};\n` +
       `import { useQrStyling } from ${JSON.stringify(state)};\n` +
       `import { BackgroundOptions as ShlinkBackgroundOptions } from ${JSON.stringify(backgroundControls)};\n` +
-      `import { FrameOptions as ShlinkFrameOptions } from ${JSON.stringify(frameControls)};\n` +
       `import { renderQrCode } from ${JSON.stringify(renderer)};\n${source}`;
 
     replaceOnce(
@@ -63,6 +61,13 @@ export const qrCodeStyling = (): Plugin => ({
     );
     replaceOnce('_(a), S(void 0);', '_(a), S(void 0), resetStyling();');
     replaceOnce(
+      'size: "lg",\n\t\topen: r,\n\t\tonClose: n,',
+      'size: "xl",\n\t\tclassName: "qr-code-modal",\n\t\topen: r,\n\t\tonClose: n,',
+    );
+    replaceOnce('className: "flex flex-col-reverse lg:flex-row gap-4",', 'className: "qr-code-modal-layout",');
+    replaceOnce('className: "grow flex items-center justify-around",', 'className: "qr-code-modal-preview",');
+    replaceOnce('className: "flex flex-col gap-2 lg:w-64",', 'className: "qr-code-modal-settings",');
+    replaceOnce(
       'let a = o("qrCodes", l),',
       'let qrDefaults = o("qrCodes", l), a = F(() => ({ ...qrDefaults, errorCorrection: "H" }), [qrDefaults]),',
     );
@@ -77,17 +82,21 @@ export const qrCodeStyling = (): Plugin => ({
     );
     replaceOnce(
       'z(Ac, {\n\t\t\t\t\t\tname: "color",\n\t\t\t\t\t\tcolor: d,\n\t\t\t\t\t\tonChange: (e) => y({ color: e })\n\t\t\t\t\t})',
-      'z(ShlinkQrStylingOptions, { styling, setStyling, cornersSquareStyling, setCornersSquareStyling, cornersDotStyling, setCornersDotStyling, color: d, onColorChange: (e) => y({ color: e }), ColorControl: Ac })',
+      'z(ShlinkQrStylingOptions, { frameStyling, setFrameStyling, styling, setStyling, cornersSquareStyling, setCornersSquareStyling, cornersDotStyling, setCornersDotStyling, color: d, onColorChange: (e) => y({ color: e }), ColorControl: Ac })',
     );
     replaceOnce(
       'z(Ac, {\n\t\t\t\t\t\tname: "background",\n\t\t\t\t\t\tcolor: f,\n\t\t\t\t\t\tonChange: (e) => y({ bgColor: e })\n\t\t\t\t\t})',
       'z(ShlinkBackgroundOptions, { backgroundStyling, setBackgroundStyling, color: f, onColorChange: (e) => y({ bgColor: e }), ColorControl: Ac })',
     );
 
-    replaceOnce(
-      '!x && /* @__PURE__ */ B(R,',
-      'z(ShlinkFrameOptions, { frameStyling, setFrameStyling, styling, color: d, ColorControl: Ac }),\n\t\t\t\t\t!x && /* @__PURE__ */ B(R,',
-    );
+    const logoStart = source.indexOf('!x && /* @__PURE__ */ B(R,');
+    const logoEnd = source.indexOf('/* @__PURE__ */ z("div", {\n\t\t\t\t\t\tclassName: "my-auto",', logoStart);
+    if (logoStart < 0 || logoEnd < logoStart) {
+      throw new Error('Review the QR modal logo controls before updating the styling adapter.');
+    }
+    const logoControls = source.slice(logoStart, logoEnd);
+    replaceOnce(logoControls, '');
+    replaceOnce('z(ShlinkQrStylingOptions, {', `${logoControls}z(ShlinkQrStylingOptions, {`);
 
     return { code: source, map: null };
   },

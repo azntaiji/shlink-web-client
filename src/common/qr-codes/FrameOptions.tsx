@@ -15,7 +15,7 @@ export const FrameOptions = ({ styling, color, ColorControl, frameStyling, setFr
   const inheritedColor = styling.colorType === 'gradient' ? styling.firstColor : color;
 
   return (
-    <details className="rounded border border-current/25 p-2">
+    <details open className="rounded border border-current/25 p-2">
       <summary className="cursor-pointer font-bold">Frame</summary>
       <div className="mt-2 flex flex-col gap-3">
         <label className="flex items-center gap-1">

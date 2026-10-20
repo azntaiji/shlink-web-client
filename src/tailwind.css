@@ -2,6 +2,7 @@
 @import 'leaflet/dist/leaflet.css';
 @import '@shlinkio/shlink-frontend-kit/tailwind.preset.css';
 @import '@shlinkio/shlink-web-component/tailwind.preset.css';
+@import './common/qr-codes/qrCodeModal.css';
 @source '../node_modules/@shlinkio/shlink-frontend-kit';
 @source '../node_modules/@shlinkio/shlink-web-component';
 

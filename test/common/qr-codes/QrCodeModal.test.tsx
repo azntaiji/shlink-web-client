@@ -308,10 +308,11 @@ describe('QR modal integration', () => {
     await user.click(modal.getByText('Dots Options'));
     await user.selectOptions(dots.getByLabelText('Dots Style'), 'square');
     await user.click(modal.getByText('Dots Options'));
-    await user.click(modal.getByText('Frame', { exact: true }));
+    expect(modal.getByText('Frame', { exact: true }).closest('details')).toHaveAttribute('open');
     const frame = within(modal.getByText('Frame', { exact: true }).closest('details')!);
-    expect(frame.getByRole('checkbox', { name: 'Enable frame' })).not.toBeChecked();
-    await user.click(frame.getByRole('checkbox', { name: 'Enable frame' }));
+    expect(frame.getByRole('checkbox', { name: 'Enable frame' })).toBeChecked();
+    expect(frame.getByRole('radio', { name: 'Circle' })).toBeChecked();
+    await user.click(frame.getByRole('radio', { name: 'Square' }));
     await user.type(frame.getByLabelText('Top Text'), 'SCAN ME');
     await user.type(frame.getByLabelText('Bottom Text'), 'EXAMPLE.COM');
     const preview = screen.getByTestId('qr-code-container');
@@ -372,14 +373,50 @@ describe('QR modal integration', () => {
     expect(resetBackground.getByLabelText('Dots Gradient first color')).toHaveValue('#a7b6c5');
     expect(resetBackground.getByLabelText('Dots Gradient second color')).toHaveValue('#ffffff');
     expect(resetBackground.getByRole('spinbutton')).toHaveValue(0);
-    await user.click(reopened.getByText('Frame', { exact: true }));
+    expect(reopened.getByText('Frame', { exact: true }).closest('details')).toHaveAttribute('open');
     const resetFrame = within(reopened.getByText('Frame', { exact: true }).closest('details')!);
-    expect(resetFrame.getByRole('checkbox', { name: 'Enable frame' })).not.toBeChecked();
-    await user.click(resetFrame.getByRole('checkbox', { name: 'Enable frame' }));
-    expect(resetFrame.getByRole('radio', { name: 'Square' })).toBeChecked();
+    expect(resetFrame.getByRole('checkbox', { name: 'Enable frame' })).toBeChecked();
+    expect(resetFrame.getByRole('radio', { name: 'Circle' })).toBeChecked();
     expect(resetFrame.getByRole('checkbox', { name: 'Inherit dots color' })).toBeChecked();
     expect(resetFrame.getByLabelText('Top Text')).toHaveValue('');
     expect(resetFrame.getByLabelText('Bottom Text')).toHaveValue('');
+    await page.viewport(1600, 1000);
+    const dialog = screen.getByRole('dialog');
+    const settingsPanel = dialog.querySelector('.qr-code-modal-settings')!;
+    const previewPanel = dialog.querySelector('.qr-code-modal-preview')!;
+    const expandedDots = reopened.getByText('Dots Options').closest('details')!;
+    const expandedFrame = reopened.getByText('Frame', { exact: true }).closest('details')!;
+    const expandedCorners = reopened.getByText('Corners Square Options').closest('details')!;
+    expect(
+      Array.from(settingsPanel.querySelectorAll(':scope > details > summary')).map((summary) => summary.textContent),
+    ).toEqual(['Dots Options', 'Frame', 'Corners Square Options', 'Corners Dot Options', 'Background Options']);
+    const logoButton = reopened.getByRole('button', { name: 'Select logo' });
+    expect(
+      reopened.getByRole('button', { name: 'Error correction (H)' }).getBoundingClientRect().bottom,
+    ).toBeLessThanOrEqual(logoButton.getBoundingClientRect().top);
+    expect(logoButton.getBoundingClientRect().bottom).toBeLessThanOrEqual(expandedDots.getBoundingClientRect().top);
+    dialog.scrollTop = 0;
+    await waitFor(() => {
+      expect(dialog.querySelector('[data-testid="transition-container"]')!.getBoundingClientRect().width).toBe(1280);
+      expect(getComputedStyle(dialog.querySelector('[data-testid="transition-container"]')!).opacity).toBe('1');
+      expect(settingsPanel.getBoundingClientRect().width).toBeGreaterThan(
+        previewPanel.getBoundingClientRect().width * 1.8,
+      );
+      expect(expandedFrame.getBoundingClientRect().x).toBeGreaterThan(expandedDots.getBoundingClientRect().right);
+      expect(expandedFrame.getBoundingClientRect().top).toBe(expandedDots.getBoundingClientRect().top);
+    });
+    await page.screenshot({ path: '../../../reports/qr-code-modal-wide.png' });
+    await page.viewport(390, 844);
+    dialog.scrollTop = 0;
+    await waitFor(() => {
+      expect(expandedCorners.getBoundingClientRect().x).toBe(expandedDots.getBoundingClientRect().x);
+      expect(previewPanel.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+        settingsPanel.getBoundingClientRect().top,
+      );
+      expect(dialog.scrollWidth).toBeLessThanOrEqual(dialog.clientWidth);
+      expect(settingsPanel.getBoundingClientRect().width).toBeLessThan(390);
+    });
+    await page.screenshot({ path: '../../../reports/qr-code-modal-mobile.png' });
     update.mockRestore();
   });
 });
