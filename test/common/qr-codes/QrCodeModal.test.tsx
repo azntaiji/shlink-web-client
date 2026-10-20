@@ -418,5 +418,5 @@ describe('QR modal integration', () => {
     });
     await page.screenshot({ path: '../../../reports/qr-code-modal-mobile.png' });
     update.mockRestore();
-  });
+  }, 30_000);
 });

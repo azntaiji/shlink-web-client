@@ -10,6 +10,9 @@ import pack from './package.json' with { type: 'json' };
 const homepage = pack.homepage?.trim();
 
 export default defineConfig({
+  define: {
+    'import.meta.env.VITE_APP_VERSION': JSON.stringify(process.env.VERSION || pack.version),
+  },
   plugins: [
     qrCodeStyling(),
     react(),

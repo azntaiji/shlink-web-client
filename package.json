@@ -1,10 +1,11 @@
 {
   "name": "shlink-web-client",
-  "description": "A React-based progressive web application for shlink",
+  "version": "4.9.0-beta.1",
   "private": false,
+  "description": "A React-based progressive web application for shlink",
   "homepage": "",
-  "repository": "https://github.com/shlinkio/shlink-web-client",
   "license": "MIT",
+  "repository": "https://github.com/azntaiji/shlink-web-client",
   "type": "module",
   "scripts": {
     "cs": "node --run lint && node --run format:check",
@@ -16,7 +17,7 @@
     "types": "tsc",
     "start": "vite serve --host=0.0.0.0",
     "preview": "vite preview --host=0.0.0.0",
-    "build": "node --run types && vite build && node scripts/replace-version.mjs",
+    "build": "node --run types && vite build",
     "build:dist": "node --run build && node scripts/create-dist-file.mjs",
     "test": "vitest run --run",
     "test:watch": "vitest --watch",

@@ -1,6 +1,6 @@
 FROM node:26.5-alpine AS node
 COPY . /shlink-web-client
-ARG VERSION="latest"
+ARG VERSION
 ENV VERSION=${VERSION}
 RUN cd /shlink-web-client && npm ci && node --run build
 
