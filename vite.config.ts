@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import { playwright } from '@vitest/browser-playwright';
 import { VitePWA } from 'vite-plugin-pwa';
 import { defineConfig } from 'vitest/config';
+import { qrCodeStyling } from './config/qrCodeStyling';
 import { manifest } from './manifest';
 import pack from './package.json' with { type: 'json' };
 
@@ -10,6 +11,7 @@ const homepage = pack.homepage?.trim();
 
 export default defineConfig({
   plugins: [
+    qrCodeStyling(),
     react(),
     tailwindcss(),
     VitePWA({
@@ -22,6 +24,11 @@ export default defineConfig({
       manifest,
     }),
   ],
+
+  optimizeDeps: {
+    exclude: ['@shlinkio/shlink-web-component'],
+    include: ['react-redux', 'recharts', 'qr-code-styling', 'bottlejs', 'bowser', 'leaflet'],
+  },
 
   build: {
     outDir: 'build',
