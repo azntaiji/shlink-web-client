@@ -5,9 +5,11 @@ import { toCornersDotOptions } from './cornersDotStyling';
 import type { CornersSquareStyling } from './cornersSquareStyling';
 import { toCornersSquareOptions } from './cornersSquareStyling';
 import { defaultDotsStyling, useDotsStyling } from './dotsStyling';
+import { defaultFrameStyling } from './frameStyling';
 
 export const useQrStyling = () => {
   const dots = useDotsStyling();
+  const [frameStyling, setFrameStyling] = useState(defaultFrameStyling);
   const [backgroundStyling, setBackgroundStyling] = useState(defaultBackgroundStyling);
   const backgroundOptions = useMemo(() => toBackgroundOptions(backgroundStyling), [backgroundStyling]);
   const [cornersSquareStyling, setCornersSquareStyling] = useState<CornersSquareStyling>({});
@@ -23,10 +25,13 @@ export const useQrStyling = () => {
     setCornersSquareStyling({});
     setCornersDotStyling({});
     setBackgroundStyling(defaultBackgroundStyling);
+    setFrameStyling(defaultFrameStyling);
   }, [setStyling]);
 
   return {
     ...dots,
+    frameStyling,
+    setFrameStyling,
     backgroundStyling,
     setBackgroundStyling,
     backgroundOptions,

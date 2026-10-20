@@ -6,7 +6,7 @@ Each phase adds one feature in the existing QR modal, using `qr-code-styling` fo
 2. **Corners Square Options:** add independent outer-eye style and color overrides, initially inherited from dots, plus Clear to restore inheritance.
 3. **Corners Dot Options:** add independent inner-eye style and color overrides, initially inherited from dots, plus Clear.
 4. **Background Options:** replace the background picker with single-color and gradient controls. Default gradient stops are `#a7b6c5` and `#ffffff`.
-5. **Frame:** add square/circle frames, inherited or custom color, and optional top/bottom text limited to 20 characters. Use a library extension for rendering so previews and downloaded images include the frame and text. Derive border thickness from the QR module grid; curve text around circular frames.
+5. **Frame:** add optional square/circle frames, inherited or custom color, and optional top/bottom text limited to 20 characters. Use a library extension for rendering so previews and downloaded images include the frame and text. Derive border thickness from the QR module grid; curve text around circular frames. For circular frames, data module should extend to circular whitespace like the FlowCode platform does for its QR codes.
 
 For every phase, run style, type, browser tests, and production build checks, correcting failures before stopping for a live browser test. Wait for the user's “proceed”, then run the yeet skill to commit that phase. Stop again and ask whether to start the next phase.
 
@@ -28,7 +28,7 @@ The renderer still owns all preview, data URI, and image downloads. Gradient rot
 - Download SVG and raster images and copy the data URI; confirm they match the preview. Test on a narrow viewport and with keyboard navigation.
 - Close and reopen the modal; options should reset to defaults and the configured foreground color. Scan a high-contrast exported QR code.
 
-The user completed the live browser gates for phases 1–4 and approved committing each phase. Phase 5 remains pending.
+The user completed the live browser gates for all five phases and approved committing each phase. The phased QR styling plan is complete.
 
 ## Phase 1 automated validation
 
@@ -134,3 +134,37 @@ The adapter sends the background options to the same library renderer used for p
 - Follow-up Background Color label and Reset button changes passed all 6 affected browser tests, style/formatting checks, and TypeScript checks. Tests verify Reset from both solid and gradient modes, restored default gradient values, and unchanged foreground overrides.
 
 The user confirmed “proceed” after the Phase 4 live browser test, including the Background Color label and Reset button, and approved committing it.
+
+## Phase 5 integration
+
+Frame starts collapsed and disabled, making frames optional as specified in the updated plan. Enable frame reveals Square/Circle shape choices, inherited or custom color, and Top Text/Bottom Text inputs limited to 20 characters each. Square is the initial shape. Inherit dots color is selected initially and follows the dots' current solid color or gradient; changing Frame Color creates a solid-color override. Re-enabling inheritance restores the live dots color. Toggling the frame off preserves the control values for re-enabling it, while closing the modal resets the frame to its disabled defaults.
+
+Circular frames use the library's native circle shape, which fills the circular perimeter with extra modules around the encoded square QR matrix. This implements the requested circular data fill. Disabling the frame restores the ordinary square QR layout.
+
+A library extension draws the frame and optional labels before rasterization. It derives border thickness from the same module grid used by the QR renderer, including circular layout and fractional module sizing. The border remains one module thick, matching the outer-eye border. The layout reserves at least four module widths between the outside of the QR data area and the frame. Square labels are centered above and below the frame; circle labels follow SVG text paths, with the bottom label reading upright. Text is inserted as plain text, and label paths have unique IDs.
+
+The extension fits the code, quiet space, frame, and labels inside the requested image dimensions. The background continues to fill the entire image. SVG downloads, raster downloads, and copied data URIs share this renderer, including inherited colors and curved text.
+
+## Phase 5 live browser checks
+
+- Refresh the local app and open a QR modal. The preview should initially have no frame. Expand Frame and select Enable frame; Square and Inherit dots color should be selected.
+- Compare the border thickness with the outer-eye border. Change the QR size and margin and verify the frame remains complete and centered.
+- Change dots color and gradient settings. The frame and its text should inherit them. Change Frame Color to create a solid override, then select Inherit dots color to restore inheritance.
+- Enter Top Text and Bottom Text, trying both labels independently and together. Verify each field stops at 20 characters and labels remain outside the frame without clipping.
+- Select Circle. Extra modules should fill the circular perimeter, with the border outside them. Top and bottom text should follow the circle and remain readable.
+- Change dots and corner styles, background colors/gradients, and logo. Verify those controls still work with either frame shape.
+- Download SVG and raster images and copy the data URI. Confirm the frame and text match the preview. Export, edit frame options, and export again to verify the image updates.
+- Disable the frame. Its border, text, and circular fill should disappear. Re-enable it to restore the selections. Close and reopen the modal; the frame should be disabled with default Square, inherited color, and empty text fields.
+- Scan both square and circular high-contrast exports with a phone, including examples with labels.
+
+## Phase 5 automated validation
+
+- Style and formatting checks, TypeScript checks, and production/PWA build passed with Node.js 26.12.0.
+- All 294 browser tests across 52 files passed, including 57 QR tests for frame controls, text limits, inherited/custom color, circular fill, reset behavior, exports, and accessibility.
+- Rendering tests verified module-derived stroke width, curved label paths, fixed export dimensions, inherited linear/radial gradients, safe text insertion, fractional module sizing, and restoration of a plain QR code when disabled.
+- The real-modal test verifies frame preview updates, distinct square/circle PNG exports, copied PNG data URIs, custom color, removal of circular fill, and reset on modal close.
+- macOS Vision independently decoded both square and circular framed preview images with labels to the expected `https://example.com/qr` payload.
+- Coverage thresholds passed: 97.50% statements, 92.78% branches, 95.38% functions, and 98.02% lines.
+- Browser screenshots: `reports/qr-code-frame-options.png`, `reports/qr-code-frame-square.png`, and `reports/qr-code-frame-circle.png` (generated artifacts, ignored by Git).
+
+The user confirmed “proceed and yeet” after the Phase 5 live browser test and approved committing it. Follow-up fixes will be handled separately from the completed five-phase plan.

@@ -1,12 +1,23 @@
 import QRCodeStyling from 'qr-code-styling';
 import type { Options } from 'qr-code-styling';
 import { preserveInnerEyeColor } from './cornersSquareStyling';
+import type { FrameStyling } from './frameStyling';
+import { defaultFrameStyling, drawFrame } from './frameStyling';
 
-export const renderQrCode = (options: Options, container?: HTMLElement | null) => {
+export const renderQrCode = (
+  options: Options,
+  container?: HTMLElement | null,
+  frame: FrameStyling = defaultFrameStyling,
+) => {
   // SVG-mode updates retain the library's previously exported canvas. A fresh renderer keeps every format current.
   const qr = new QRCodeStyling();
-  qr.applyExtension(preserveInnerEyeColor);
+  qr.applyExtension((svg, currentOptions) => {
+    preserveInnerEyeColor(svg, currentOptions);
+    if (frame.enabled && qr._qr) {
+      drawFrame(svg, currentOptions, frame, qr._qr.getModuleCount());
+    }
+  });
   qr.append(container ?? undefined);
-  qr.update(options);
+  qr.update({ ...options, shape: frame.enabled ? frame.shape : 'square' });
   return qr;
 };
