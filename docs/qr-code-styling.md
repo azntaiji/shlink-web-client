@@ -168,3 +168,40 @@ The extension fits the code, quiet space, frame, and labels inside the requested
 - Browser screenshots: `reports/qr-code-frame-options.png`, `reports/qr-code-frame-square.png`, and `reports/qr-code-frame-circle.png` (generated artifacts, ignored by Git).
 
 The user confirmed “proceed and yeet” after the Phase 5 live browser test and approved committing it. Follow-up fixes will be handled separately from the completed five-phase plan.
+
+## Larger center logos
+
+Center logos now use `imageOptions.imageSize: 0.5`, the highest coefficient recommended by qr-code-styling 1.9.2. The renderer applies this policy whenever an image is present, alongside High (`H`) error correction, hidden background dots, and the existing 5 px logo padding. The previous High-correction coefficient was `0.3`.
+
+This coefficient is not a width percentage: the library multiplies it by the correction-level fraction to calculate a hidden-module budget, then rounds the reserved rectangle to the module grid and fits the source aspect ratio. At H, `0.5` produces a nominal 15% area budget (roughly 39% of the width for a square before module rounding and padding). These figures describe sizing, not guaranteed damage tolerance or universal scan reliability.
+
+The modal shows a disabled High correction control and explains why while a logo is present. The underlying correction selection is preserved, so clearing the logo restores it. Replacing a logo uses the existing Clear logo / Select logo flow. Closing the modal resets the logo and correction selection as before. No persistent settings or new sizing controls are added.
+
+Circular QR designs fit the data grid inside the circular perimeter. The frame then scales the grid, logo, border, and text to fit the requested export dimensions. Logos therefore remain smaller in pixels in circular designs while keeping the same reserved-module proportion. We do not enlarge logos independently over additional data modules or change export dimensions to compensate.
+
+### Calibration and regression checks
+
+- The `0.50` candidate passed the complete primary scan matrix, so lower coefficients were not needed for the selected default: 3 logo fixtures (opaque square, transparent square, wide), 2 URL payload lengths, 3 frame modes (none, square, circle), and 2 output sizes (300 and 600 px), totaling 36 PNG decodes with jsQR. Frames include both labels; colors are black on white with a 20 px QR margin.
+- All 6 dots styles also decode in each frame mode with continuous square finder patterns, totaling 18 additional PNG decodes. jsQR cannot locate some inherited dotted circular finder patterns even without a logo; macOS Vision independently decoded the 600 px inherited-dots circular logo preview, plus the square and circular square-module previews, to `https://example.com/qr`.
+- Regression checks cover the visible size increase, preserved centering and grid proportions, SVG embedding, unchanged export dimensions, forced H correction, caller-option preservation, upload/clear/replacement, restored correction selection, copied PNG matching the current export, and modal reset.
+- jsQR is a development-only dependency and is not used for runtime sizing or included in the production application.
+- Validation passed: 342 tests across 53 files; coverage 97.55% statements, 92.94% branches, 95.40% functions, and 98.07% lines. Style, TypeScript/production build, adapter lint/format, and diff checks pass. Existing non-blocking build/coverage warnings remain.
+
+### Live browser check before committing
+
+- Add a logo: confirm it is visibly larger and correction displays disabled High with the explanation. Clear it: confirm the previous correction selection returns. Repeat with a different logo, then close/reopen the modal to check reset.
+- Compare plain, square, and circular designs, including labels. Circular logos should keep their proportion to the smaller data grid; output dimensions should stay the same.
+- Compare preview, downloaded SVG/PNG, and copied data URI. Scan exported examples at their intended display/print size on iOS and Android.
+- Device-testing previews are generated at `reports/qr-code-logo-square.png`, `reports/qr-code-logo-circle.png`, and `reports/qr-code-logo-circle-dotted.png` (ignored artifacts).
+
+This is a tested larger default, not a guarantee for arbitrary images, low-contrast colors, very small exports, every payload, or every camera. Physical-device testing remains pending user review.
+
+## Tighter frame spacing
+
+The default gap between the circular QR perimeter and the inner edge of its frame is reduced from four module widths to three (25% tighter). Square frames retain four module widths: trial gaps of two, three, 3.5, and 3.75 failed PNG decode cases at 600 px. A larger explicitly selected QR margin still sets the minimum gap. Frame thickness, label spacing, and requested export dimensions are preserved; the tighter circular layout leaves more room for the QR and logo.
+
+Validation after the spacing adjustment: all 57 targeted frame, logo, and modal tests pass, including the 54 PNG decode cases; style and TypeScript/production build checks pass. Updated square, circular, and inherited-dots circular logo previews also decode independently with macOS Vision.
+
+## Modal correction default
+
+The QR modal now starts at High (`H`) error correction and resets to H when reopened. Other configured QR defaults are preserved. Correction remains editable without a logo; adding a logo locks H, and clearing it restores the selection made during that modal session.

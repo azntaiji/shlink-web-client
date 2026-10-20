@@ -4,6 +4,9 @@ import { preserveInnerEyeColor } from './cornersSquareStyling';
 import type { FrameStyling } from './frameStyling';
 import { defaultFrameStyling, drawFrame } from './frameStyling';
 
+// Calibrated against exported PNGs; this coefficient is not a percentage of QR width.
+export const logoImageSize = 0.5;
+
 export const renderQrCode = (
   options: Options,
   container?: HTMLElement | null,
@@ -18,6 +21,13 @@ export const renderQrCode = (
     }
   });
   qr.append(container ?? undefined);
-  qr.update({ ...options, shape: frame.enabled ? frame.shape : 'square' });
+  qr.update({
+    ...options,
+    shape: frame.enabled ? frame.shape : 'square',
+    ...(options.image && {
+      qrOptions: { ...options.qrOptions, errorCorrectionLevel: 'H' },
+      imageOptions: { ...options.imageOptions, hideBackgroundDots: true, margin: 5, imageSize: logoImageSize },
+    }),
+  });
   return qr;
 };

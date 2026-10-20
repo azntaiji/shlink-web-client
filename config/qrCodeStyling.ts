@@ -63,6 +63,15 @@ export const qrCodeStyling = (): Plugin => ({
     );
     replaceOnce('_(a), S(void 0);', '_(a), S(void 0), resetStyling();');
     replaceOnce(
+      'let a = o("qrCodes", l),',
+      'let qrDefaults = o("qrCodes", l), a = F(() => ({ ...qrDefaults, errorCorrection: "H" }), [qrDefaults]),',
+    );
+    // Keep p unchanged while a logo is present, so removing it restores the user's selection.
+    replaceOnce(
+      'z(m, {\n\t\t\t\t\t\terrorCorrection: p,\n\t\t\t\t\t\tonChange: (e) => y({ errorCorrection: e })\n\t\t\t\t\t})',
+      'B("fieldset", { disabled: !!x, className: "flex flex-col gap-1", children: [z(m, { errorCorrection: x ? "H" : p, onChange: (e) => y({ errorCorrection: e }) }), x && z("p", { className: "text-sm", children: "High error correction is required for logos." })] })',
+    );
+    replaceOnce(
       'drawType: i\n',
       'drawType: i,\n\t\t\t\t\t\tdotsStyling: dotsOptions, cornersSquareStyling: cornersSquareOptions, cornersDotStyling: cornersDotOptions, backgroundStyling: backgroundOptions, frameStyling\n',
     );

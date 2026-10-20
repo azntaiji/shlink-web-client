@@ -36,7 +36,8 @@ export const drawFrame = (svg: SVGElement, options: Options, frame: FrameStyling
   const centerX = width / 2;
   const centerY = height / 2;
   const extent = frame.shape === 'circle' ? minSize / 2 : (moduleCount * moduleSize) / 2;
-  const gap = Math.max(4 * moduleSize, margin);
+  // Circular decoration allows a tighter gap; smaller square gaps failed export scan checks.
+  const gap = Math.max((frame.shape === 'circle' ? 3 : 4) * moduleSize, margin);
   const borderRadius = extent + gap + moduleSize / 2;
   const outerExtent = extent + gap + moduleSize;
   const fontSize = moduleSize * 2;

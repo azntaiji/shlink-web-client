@@ -7,6 +7,7 @@ import QRCodeStyling from 'qr-code-styling';
 import { MemoryRouter } from 'react-router';
 import { page } from 'vitest/browser';
 import '../../../src/tailwind.css';
+import { createLogo } from './logoFixtures';
 
 describe('QR modal integration', () => {
   it('uses the existing modal and renderer for styling and resets options after closing', async () => {
@@ -60,6 +61,44 @@ describe('QR modal integration', () => {
         }),
       ),
     );
+    const originalCorrection = modal.getByRole('button', { name: 'Error correction (H)' });
+    await user.click(originalCorrection);
+    await user.click(await screen.findByRole('menuitem', { name: /edium/ }));
+    const logoInput = modal.getByTestId('logo-input');
+    const logoFile = async (wide = false) =>
+      new File([await (await fetch(createLogo(wide ? 'wide' : 'opaque'))).blob()], wide ? 'wide.png' : 'logo.png', {
+        type: 'image/png',
+      });
+    fireEvent.change(logoInput, { target: { files: [await logoFile()] } });
+    const lockedCorrection = await modal.findByRole('button', { name: 'Error correction (H)' });
+    expect(lockedCorrection).toBeDisabled();
+    expect(modal.getByText('High error correction is required for logos.')).toBeInTheDocument();
+    const previewWithLogo = modal.getByTestId('qr-code-container');
+    await waitFor(() => expect(previewWithLogo.querySelector('image')).not.toBeNull());
+    const firstLogo = previewWithLogo.querySelector('image')!.getAttribute('href');
+    const logoRenderer = update.mock.contexts.at(-1) as QRCodeStyling;
+    const logoPng = (await logoRenderer.getRawData('png')) as Blob;
+    const expectedLogoUri = await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.readAsDataURL(logoPng);
+    });
+    const logoCopy = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue();
+    await user.click(modal.getByRole('button', { name: 'Copy data URI' }));
+    await waitFor(() => expect(logoCopy).toHaveBeenCalledWith(expectedLogoUri));
+    logoCopy.mockRestore();
+
+    await user.click(modal.getByRole('button', { name: 'Clear logo (logo.png)' }));
+    expect(modal.getByRole('button', { name: 'Error correction (M)' })).toBeEnabled();
+    fireEvent.change(modal.getByTestId('logo-input'), { target: { files: [await logoFile(true)] } });
+    await waitFor(() => expect(previewWithLogo.querySelector('image')!.getAttribute('href')).not.toBe(firstLogo));
+    expect(modal.getByRole('button', { name: 'Error correction (H)' })).toBeDisabled();
+    await user.click(modal.getByRole('button', { name: 'Clear logo (wide.png)' }));
+    expect(modal.getByRole('button', { name: 'Error correction (M)' })).toBeEnabled();
+    expect(modal.queryByText('High error correction is required for logos.')).not.toBeInTheDocument();
+    await waitFor(() => expect(previewWithLogo.querySelector('image')).toBeNull());
+    expect((update.mock.contexts.at(-1) as QRCodeStyling)._options.qrOptions.errorCorrectionLevel).toBe('M');
+
     expect(modal.getByRole('button', { name: /Download/ })).toBeInTheDocument();
     expect(modal.getByRole('button', { name: 'Copy data URI' })).toBeInTheDocument();
     await page.screenshot({ path: '../../../reports/qr-code-dots-options.png' });
@@ -302,11 +341,16 @@ describe('QR modal integration', () => {
     await waitFor(() => expect(preview.querySelector('[data-qr-frame]')).toBeNull());
     expect((update.mock.contexts.at(-1) as QRCodeStyling)._options.shape).toBe('square');
     await user.click(frame.getByRole('checkbox', { name: 'Enable frame' }));
+    fireEvent.change(modal.getByTestId('logo-input'), { target: { files: [await logoFile()] } });
+    expect(modal.getByRole('button', { name: 'Error correction (H)' })).toBeDisabled();
     await user.click(modal.getByRole('button', { name: /close/i }));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     await user.click(within(row).getByRole('button', { name: 'Options' }));
     await user.click(await screen.findByText('QR code', { exact: true }));
     const reopened = within(await screen.findByRole('dialog'));
+    expect(reopened.getByRole('button', { name: 'Error correction (H)' })).toBeEnabled();
+    expect(reopened.getByRole('button', { name: 'Select logo' })).toBeInTheDocument();
+    await waitFor(() => expect(reopened.getByTestId('qr-code-container').querySelector('image')).toBeNull());
     expect(reopened.getByText('Dots Options').closest('details')).toHaveAttribute('open');
     expect(reopened.getByLabelText('Dots Style')).toHaveValue('square');
     expect(
