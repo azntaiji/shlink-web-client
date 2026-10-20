@@ -28,7 +28,7 @@ The renderer still owns all preview, data URI, and image downloads. Gradient rot
 - Download SVG and raster images and copy the data URI; confirm they match the preview. Test on a narrow viewport and with keyboard navigation.
 - Close and reopen the modal; options should reset to defaults and the configured foreground color. Scan a high-contrast exported QR code.
 
-The user completed the live browser gates for phases 1–3 and approved committing each phase. Phases 4–5 remain pending.
+The user completed the live browser gates for phases 1–4 and approved committing each phase. Phase 5 remains pending.
 
 ## Phase 1 automated validation
 
@@ -100,3 +100,37 @@ Export validation exposed a library cache issue: SVG-mode updates retain a previ
 - Browser screenshot: `reports/qr-code-corners-dot-options.png` (generated artifact, ignored by Git).
 
 The user confirmed “proceed” after the Phase 3 live browser test and approved committing it.
+
+## Phase 4 integration
+
+Background Options replaces the standalone background picker with a collapsed accordion using the same color and gradient controls as the foreground sections. Single color is selected by default and retains the configured background color, which defaults to `#ffffff`. The default gradient is Linear, with stops `#a7b6c5` and `#ffffff` and rotation of 0 degrees. The single-color picker is labelled Background Color; the gradient controls retain the Dots Gradient label.
+
+Background colors, gradients, and rotations are independent of all foreground sections. Switching to single color clears the gradient and restores the chosen solid background; switching back retains the previous gradient values. Radial gradients hide Rotation, while returning to Linear restores the previous degree value. Closing the modal resets background styling and restores the configured solid background.
+
+Reset restores the application's default white background (`#ffffff`), selects Single color, and resets the gradient stops, type, and rotation to their defaults. Foreground styling remains unchanged.
+
+The adapter sends the background options to the same library renderer used for preview, downloads, and copied data URIs. The existing fresh-renderer behavior also applies to background edits, keeping repeated raster exports current.
+
+## Phase 4 live browser checks
+
+- Refresh the local app and open a QR modal. Verify the old standalone background picker is replaced by Background Options. Expand it; Single color should be selected and the color should be white unless configured otherwise.
+- Change the single-color picker. Only the background should change; dots and both corner overrides should retain their settings.
+- Select Color gradient. Verify Linear, `#a7b6c5` and `#ffffff`, and Rotation of 0 degrees. Change both stops and try positive, negative, and fractional rotations.
+- Switch to Radial and confirm Rotation disappears. Return to Linear and confirm the previous rotation is retained.
+- Collapse and reopen the section, then switch between Single color and Color gradient. Each mode should retain its selected colors; single color should remove the gradient completely.
+- Press Reset after changing a solid color or gradient. The background should return to white and Single color, with default gradient values restored when reopening Color gradient. Dots and corner overrides should remain unchanged.
+- Change dots and corner styles/colors and clear corner overrides. Background Options should retain its own settings.
+- Download PNG, change the background, and download PNG again. Compare the latest PNG, SVG, and copied data URI with the preview.
+- Close and reopen the modal. Single color and the configured solid background should be restored. Reopen Color gradient and verify its default stops, Linear type, and 0-degree rotation. Scan a high-contrast export.
+
+## Phase 4 automated validation
+
+- Style and formatting checks, TypeScript checks, and production/PWA build passed with Node.js 26.12.0.
+- All 281 browser tests across 50 files passed, including 44 QR tests for controls, independent styling, modal reset, accessibility, and exports.
+- PNG pixel comparisons verified that linear and radial background gradients change the background while preserving foreground pixels for dots and both corner overrides.
+- The real-modal test verifies default stops, edited colors, rotation, gradient type, switching back to a solid background, reset on close, and updated PNG data after background edits.
+- Coverage thresholds passed: 97.37% statements, 92.83% branches, 95.06% functions, and 97.95% lines.
+- Browser screenshot: `reports/qr-code-background-options.png` (generated artifact, ignored by Git).
+- Follow-up Background Color label and Reset button changes passed all 6 affected browser tests, style/formatting checks, and TypeScript checks. Tests verify Reset from both solid and gradient modes, restored default gradient values, and unchanged foreground overrides.
+
+The user confirmed “proceed” after the Phase 4 live browser test, including the Background Color label and Reset button, and approved committing it.

@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import { defaultBackgroundStyling, toBackgroundOptions } from './backgroundStyling';
 import type { CornersDotStyling } from './cornersDotStyling';
 import { toCornersDotOptions } from './cornersDotStyling';
 import type { CornersSquareStyling } from './cornersSquareStyling';
@@ -7,6 +8,8 @@ import { defaultDotsStyling, useDotsStyling } from './dotsStyling';
 
 export const useQrStyling = () => {
   const dots = useDotsStyling();
+  const [backgroundStyling, setBackgroundStyling] = useState(defaultBackgroundStyling);
+  const backgroundOptions = useMemo(() => toBackgroundOptions(backgroundStyling), [backgroundStyling]);
   const [cornersSquareStyling, setCornersSquareStyling] = useState<CornersSquareStyling>({});
   const cornersSquareOptions = useMemo(() => toCornersSquareOptions(cornersSquareStyling), [cornersSquareStyling]);
   const [cornersDotStyling, setCornersDotStyling] = useState<CornersDotStyling>({});
@@ -19,10 +22,14 @@ export const useQrStyling = () => {
     setStyling(defaultDotsStyling);
     setCornersSquareStyling({});
     setCornersDotStyling({});
+    setBackgroundStyling(defaultBackgroundStyling);
   }, [setStyling]);
 
   return {
     ...dots,
+    backgroundStyling,
+    setBackgroundStyling,
+    backgroundOptions,
     cornersSquareStyling,
     setCornersSquareStyling,
     cornersSquareOptions,

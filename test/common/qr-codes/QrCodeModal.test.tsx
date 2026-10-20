@@ -46,7 +46,7 @@ describe('QR modal integration', () => {
     const dots = within(modal.getByText('Dots Options').closest('details')!);
     expect(modal.getByText('Dots Options').closest('details')).toHaveAttribute('open');
     expect(modal.queryByLabelText('color', { exact: true })).not.toBeInTheDocument();
-    expect(modal.getByLabelText('Dots Color')).toHaveValue('#000000');
+    expect(dots.getByLabelText('Dots Color')).toHaveValue('#000000');
     await user.selectOptions(modal.getByLabelText('Dots Style'), 'classy-rounded');
     await user.click(dots.getByRole('radio', { name: 'Color gradient' }));
     fireEvent.change(dots.getByRole('spinbutton'), { target: { value: '90' } });
@@ -171,6 +171,93 @@ describe('QR modal integration', () => {
     );
     await user.selectOptions(inner.getByLabelText('Corners Dot Style'), 'classy');
     fireEvent.change(inner.getByLabelText('Corners Dot Color picker'), { target: { value: '#ff00ff' } });
+    await user.click(modal.getByText('Corners Dot Options'));
+    await user.click(modal.getByText('Background Options'));
+    const background = within(modal.getByText('Background Options').closest('details')!);
+    expect(modal.queryByLabelText('background', { exact: true })).not.toBeInTheDocument();
+    expect(background.getByLabelText('Background Color')).toHaveValue('#ffffff');
+    fireEvent.change(background.getByLabelText('Background Color picker'), { target: { value: '#fedcba' } });
+    await waitFor(() =>
+      expect(update).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          backgroundOptions: { color: '#fedcba', gradient: undefined },
+        }),
+      ),
+    );
+    const beforeBackground = update.mock.contexts.at(-1) as QRCodeStyling;
+    const beforeBackgroundPng = new Uint8Array(
+      await ((await beforeBackground.getRawData('png')) as Blob).arrayBuffer(),
+    );
+    await user.click(background.getByRole('radio', { name: 'Color gradient' }));
+    expect(background.getByLabelText('Dots Gradient first color')).toHaveValue('#a7b6c5');
+    expect(background.getByLabelText('Dots Gradient second color')).toHaveValue('#ffffff');
+    expect(background.getByRole('spinbutton')).toHaveValue(0);
+    fireEvent.change(background.getByLabelText('Dots Gradient first color picker'), { target: { value: '#c0d0e0' } });
+    fireEvent.change(background.getByLabelText('Dots Gradient second color picker'), { target: { value: '#fefefe' } });
+    fireEvent.change(background.getByRole('spinbutton'), { target: { value: '90' } });
+    await waitFor(() =>
+      expect(update).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          backgroundOptions: {
+            color: '#fedcba',
+            gradient: {
+              type: 'linear',
+              rotation: Math.PI / 2,
+              colorStops: [
+                { offset: 0, color: '#c0d0e0' },
+                { offset: 1, color: '#fefefe' },
+              ],
+            },
+          },
+          dotsOptions: { color: '#000000', type: 'classy-rounded', gradient: undefined },
+          cornersDotOptions: { color: '#ff00ff', type: 'classy', gradient: undefined },
+          cornersSquareOptions: expect.objectContaining({ type: 'square' }),
+        }),
+      ),
+    );
+    const afterBackground = update.mock.contexts.at(-1) as QRCodeStyling;
+    const afterBackgroundPng = new Uint8Array(await ((await afterBackground.getRawData('png')) as Blob).arrayBuffer());
+    expect(
+      beforeBackgroundPng.length !== afterBackgroundPng.length ||
+        afterBackgroundPng.some((byte, index) => byte !== beforeBackgroundPng[index]),
+    ).toBe(true);
+    await user.click(background.getByRole('radio', { name: 'Radial' }));
+    await waitFor(() =>
+      expect(update).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          backgroundOptions: expect.objectContaining({
+            gradient: expect.objectContaining({ type: 'radial', rotation: 0 }),
+          }),
+        }),
+      ),
+    );
+    await user.click(background.getByRole('radio', { name: 'Linear' }));
+    expect(background.getByRole('spinbutton')).toHaveValue(90);
+    await page.screenshot({ path: '../../../reports/qr-code-background-options.png' });
+    await user.click(background.getByRole('button', { name: 'Reset' }));
+    expect(background.getByRole('radio', { name: 'Single color' })).toBeChecked();
+    expect(background.getByLabelText('Background Color')).toHaveValue('#ffffff');
+    await waitFor(() =>
+      expect(update).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          backgroundOptions: { color: '#ffffff', gradient: undefined },
+          dotsOptions: { color: '#000000', type: 'classy-rounded', gradient: undefined },
+          cornersDotOptions: { color: '#ff00ff', type: 'classy', gradient: undefined },
+          cornersSquareOptions: expect.objectContaining({ type: 'square' }),
+        }),
+      ),
+    );
+    fireEvent.change(background.getByLabelText('Background Color picker'), { target: { value: '#fedcba' } });
+    await user.click(background.getByRole('radio', { name: 'Color gradient' }));
+    await user.click(background.getByRole('radio', { name: 'Single color' }));
+    await waitFor(() =>
+      expect(update).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          backgroundOptions: { color: '#fedcba', gradient: undefined },
+        }),
+      ),
+    );
+    await user.click(background.getByRole('radio', { name: 'Color gradient' }));
     await user.click(modal.getByRole('button', { name: /close/i }));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     await user.click(within(row).getByRole('button', { name: 'Options' }));
@@ -189,6 +276,14 @@ describe('QR modal integration', () => {
     const resetInner = within(reopened.getByText('Corners Dot Options').closest('details')!);
     expect(resetInner.getByLabelText('Corners Dot Style')).toHaveValue('square');
     expect(resetInner.getByRole('button', { name: 'Clear' })).toBeDisabled();
+    await user.click(reopened.getByText('Background Options'));
+    const resetBackground = within(reopened.getByText('Background Options').closest('details')!);
+    expect(resetBackground.getByRole('radio', { name: 'Single color' })).toBeChecked();
+    expect(resetBackground.getByLabelText('Background Color')).toHaveValue('#ffffff');
+    await user.click(resetBackground.getByRole('radio', { name: 'Color gradient' }));
+    expect(resetBackground.getByLabelText('Dots Gradient first color')).toHaveValue('#a7b6c5');
+    expect(resetBackground.getByLabelText('Dots Gradient second color')).toHaveValue('#ffffff');
+    expect(resetBackground.getByRole('spinbutton')).toHaveValue(0);
     update.mockRestore();
   });
 });
