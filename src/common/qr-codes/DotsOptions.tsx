@@ -1,7 +1,7 @@
-import { Input, LabelledSelect } from '@shlinkio/shlink-frontend-kit';
+import { LabelledSelect } from '@shlinkio/shlink-frontend-kit';
 import type { ComponentType, Dispatch, SetStateAction } from 'react';
-import { useId } from 'react';
 import type { DotsStyling } from './dotsStyling';
+import { QrColorOptions } from './QrColorOptions';
 
 export type ColorControlProps = {
   name: string;
@@ -27,7 +27,6 @@ const styles = {
 } as const;
 
 export const DotsOptions = ({ styling, setStyling, color, onColorChange, ColorControl }: DotsOptionsProps) => {
-  const id = useId();
   const update = (patch: Partial<DotsStyling>) => setStyling((previous) => ({ ...previous, ...patch }));
 
   return (
@@ -45,82 +44,14 @@ export const DotsOptions = ({ styling, setStyling, color, onColorChange, ColorCo
             </option>
           ))}
         </LabelledSelect>
-        <fieldset>
-          <legend className="mb-1">Color Type</legend>
-          <div className="flex flex-wrap gap-2">
-            {(['single', 'gradient'] as const).map((value) => (
-              <label key={value} className="flex items-center gap-1">
-                <input
-                  type="radio"
-                  name={`${id}-color-type`}
-                  value={value}
-                  checked={styling.colorType === value}
-                  onChange={() => update({ colorType: value })}
-                />
-                {value === 'single' ? 'Single color' : 'Color gradient'}
-              </label>
-            ))}
-          </div>
-        </fieldset>
-        {styling.colorType === 'single' ? (
-          <div className="flex flex-col gap-1">
-            <span>Dots Color</span>
-            <ColorControl name="Dots Color" color={color} onChange={onColorChange} />
-          </div>
-        ) : (
-          <>
-            <fieldset>
-              <legend className="mb-1">Gradient Type</legend>
-              <div className="flex gap-2">
-                {(['linear', 'radial'] as const).map((value) => (
-                  <label key={value} className="flex items-center gap-1">
-                    <input
-                      type="radio"
-                      name={`${id}-gradient-type`}
-                      value={value}
-                      checked={styling.gradientType === value}
-                      onChange={() => update({ gradientType: value })}
-                    />
-                    {value === 'linear' ? 'Linear' : 'Radial'}
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-            <fieldset className="flex flex-col gap-1">
-              <legend className="mb-1">Dots Gradient</legend>
-              <ColorControl
-                name="Dots Gradient first color"
-                color={styling.firstColor}
-                onChange={(firstColor) => update({ firstColor })}
-              />
-              <ColorControl
-                name="Dots Gradient second color"
-                color={styling.secondColor}
-                onChange={(secondColor) => update({ secondColor })}
-              />
-            </fieldset>
-            {styling.gradientType === 'linear' && (
-              <div className="flex flex-col gap-1">
-                <label htmlFor={`${id}-rotation`}>Rotation (degrees)</label>
-                <Input
-                  id={`${id}-rotation`}
-                  type="number"
-                  step="any"
-                  defaultValue={styling.rotation}
-                  onBlur={(event) => {
-                    event.target.value = String(styling.rotation);
-                  }}
-                  onChange={(event) => {
-                    const rotation = event.target.valueAsNumber;
-                    if (Number.isFinite(rotation)) {
-                      update({ rotation });
-                    }
-                  }}
-                />
-              </div>
-            )}
-          </>
-        )}
+        <QrColorOptions
+          styling={styling}
+          onStylingChange={update}
+          color={color}
+          onColorChange={onColorChange}
+          ColorControl={ColorControl}
+          colorLabel="Dots Color"
+        />
       </div>
     </details>
   );

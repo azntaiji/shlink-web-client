@@ -28,24 +28,38 @@ export const qrCodeStyling = (): Plugin => ({
       source = source.replace(before, () => after);
     };
 
-    const controls = fileURLToPath(new URL('../src/common/qr-codes/DotsOptions.tsx', import.meta.url));
-    const state = fileURLToPath(new URL('../src/common/qr-codes/dotsStyling.ts', import.meta.url));
+    const controls = fileURLToPath(new URL('../src/common/qr-codes/QrStylingOptions.tsx', import.meta.url));
+    const state = fileURLToPath(new URL('../src/common/qr-codes/useQrStyling.ts', import.meta.url));
+    const corners = fileURLToPath(new URL('../src/common/qr-codes/cornersSquareStyling.ts', import.meta.url));
     source =
-      `import { DotsOptions as ShlinkDotsOptions } from ${JSON.stringify(controls)};\n` +
-      `import { useDotsStyling, defaultDotsStyling } from ${JSON.stringify(state)};\n${source}`;
+      `import { QrStylingOptions as ShlinkQrStylingOptions } from ${JSON.stringify(controls)};\n` +
+      `import { useQrStyling } from ${JSON.stringify(state)};\n` +
+      `import { preserveInnerEyeColor } from ${JSON.stringify(corners)};\n${source}`;
 
-    replaceOnce('drawType: o, logo: s }, c)', 'drawType: o, logo: s, dotsStyling }, c)');
-    replaceOnce('dotsOptions: { color: t },', 'dotsOptions: { color: t, ...dotsStyling },');
-    replaceOnce('\n\t\tn,\n\t\tt,\n\t\te,\n\t\to,', '\n\t\tdotsStyling,\n\t\tn,\n\t\tt,\n\t\te,\n\t\to,');
+    replaceOnce('drawType: o, logo: s }, c)', 'drawType: o, logo: s, dotsStyling, cornersSquareStyling }, c)');
+    replaceOnce('u.current.append(e);', 'u.current.applyExtension(preserveInnerEyeColor);\n\t\tu.current.append(e);');
+    replaceOnce(
+      'dotsOptions: { color: t },',
+      `dotsOptions: { color: t, ...dotsStyling },
+      cornersSquareOptions: cornersSquareStyling,
+      cornersDotOptions: cornersSquareStyling?.color || cornersSquareStyling?.gradient ? { color: t } : undefined,`,
+    );
+    replaceOnce(
+      '\n\t\tn,\n\t\tt,\n\t\te,\n\t\to,',
+      '\n\t\tdotsStyling,\n\t\tcornersSquareStyling,\n\t\tn,\n\t\tt,\n\t\te,\n\t\to,',
+    );
     replaceOnce(
       'let a = o("qrCodes", l), [{ size:',
-      'let { styling, setStyling, dotsOptions } = useDotsStyling();\n\tlet a = o("qrCodes", l), [{ size:',
+      'let { styling, setStyling, dotsOptions, cornersSquareStyling, setCornersSquareStyling, cornersSquareOptions, resetStyling } = useQrStyling();\n\tlet a = o("qrCodes", l), [{ size:',
     );
-    replaceOnce('_(a), S(void 0);', '_(a), S(void 0), setStyling(defaultDotsStyling);');
-    replaceOnce('drawType: i\n', 'drawType: i,\n\t\t\t\t\t\tdotsStyling: dotsOptions\n');
+    replaceOnce('_(a), S(void 0);', '_(a), S(void 0), resetStyling();');
+    replaceOnce(
+      'drawType: i\n',
+      'drawType: i,\n\t\t\t\t\t\tdotsStyling: dotsOptions, cornersSquareStyling: cornersSquareOptions\n',
+    );
     replaceOnce(
       'z(Ac, {\n\t\t\t\t\t\tname: "color",\n\t\t\t\t\t\tcolor: d,\n\t\t\t\t\t\tonChange: (e) => y({ color: e })\n\t\t\t\t\t})',
-      'z(ShlinkDotsOptions, { styling, setStyling, color: d, onColorChange: (e) => y({ color: e }), ColorControl: Ac })',
+      'z(ShlinkQrStylingOptions, { styling, setStyling, cornersSquareStyling, setCornersSquareStyling, color: d, onColorChange: (e) => y({ color: e }), ColorControl: Ac })',
     );
 
     return { code: source, map: null };
