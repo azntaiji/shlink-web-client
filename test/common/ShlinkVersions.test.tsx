@@ -15,6 +15,12 @@ describe('<ShlinkVersions />', () => {
     ['1.2.3', fromPartial<ReachableServer>({ version: '1.0.0', printableVersion: 'foo' }), 'v1.2.3', 'foo'],
     ['foo', fromPartial<ReachableServer>({ version: '1.0.0', printableVersion: '1.2.3' }), 'latest', '1.2.3'],
     ['latest', fromPartial<ReachableServer>({ version: '1.0.0', printableVersion: 'latest' }), 'latest', 'latest'],
+    [
+      '4.9.0-beta.1',
+      fromPartial<ReachableServer>({ version: '1.0.0', printableVersion: 'v1.0.0' }),
+      'v4.9.0-beta.1',
+      'v1.0.0',
+    ],
     ['5.5.0', fromPartial<ReachableServer>({ version: '1.0.0', printableVersion: '0.2.8' }), 'v5.5.0', '0.2.8'],
     ['not-semver', fromPartial<ReachableServer>({ version: '1.0.0', printableVersion: 'some' }), 'latest', 'some'],
   ])(
@@ -25,14 +31,28 @@ describe('<ShlinkVersions />', () => {
 
       await expect
         .element(serverLink)
-        .toHaveAttribute('href', `https://github.com/shlinkio/shlink/releases/${expectedServerVersion}`);
+        .toHaveAttribute(
+          'href',
+          `https://github.com/shlinkio/shlink/releases/${expectedServerVersion === 'latest' ? 'latest' : `tag/${expectedServerVersion}`}`,
+        );
       await expect.element(serverLink).toHaveTextContent(expectedServerVersion);
       await expect
         .element(clientLink)
-        .toHaveAttribute('href', `https://github.com/shlinkio/shlink-web-client/releases/${expectedClientVersion}`);
+        .toHaveAttribute(
+          'href',
+          `https://github.com/azntaiji/shlink-web-client/releases/${expectedClientVersion === 'latest' ? 'latest' : `tag/${expectedClientVersion}`}`,
+        );
       await expect.element(clientLink).toHaveTextContent(expectedClientVersion);
     },
   );
+
+  it('shows the configured beta version by default and links to the fork release', async () => {
+    const screen = await setUp({ selectedServer: null });
+    await expect.element(screen.getByRole('link')).toHaveTextContent('v4.9.0-beta.1');
+    await expect
+      .element(screen.getByRole('link'))
+      .toHaveAttribute('href', 'https://github.com/azntaiji/shlink-web-client/releases/tag/v4.9.0-beta.1');
+  });
 
   it.each([
     ['1.2.3', null],
@@ -45,6 +65,6 @@ describe('<ShlinkVersions />', () => {
     expect(links).toHaveLength(1);
     await expect
       .element(links[0])
-      .toHaveAttribute('href', 'https://github.com/shlinkio/shlink-web-client/releases/v1.2.3');
+      .toHaveAttribute('href', 'https://github.com/azntaiji/shlink-web-client/releases/tag/v1.2.3');
   });
 });

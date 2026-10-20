@@ -1,5 +1,7 @@
 # shlink-web-client
 
+This fork is **Steelhead 4.9.0-beta.1**, based on upstream v4.8.1. See the [beta release notes](docs/releases/4.9.0-beta.1.md) for QR customization changes and publishing instructions.
+
 [![Build Status](https://img.shields.io/github/actions/workflow/status/shlinkio/shlink-web-client/ci.yml?branch=develop&logo=github&style=flat-square)](https://github.com/shlinkio/shlink-web-client/actions/workflows/ci.yml?query=workflow%3A%22Continuous+integration%22)
 [![Code Coverage](https://img.shields.io/codecov/c/gh/shlinkio/shlink-web-client/develop?style=flat-square)](https://app.codecov.io/gh/shlinkio/shlink-web-client)
 [![GitHub release](https://img.shields.io/github/release/shlinkio/shlink-web-client.svg?style=flat-square)](https://github.com/shlinkio/shlink-web-client/releases/latest)

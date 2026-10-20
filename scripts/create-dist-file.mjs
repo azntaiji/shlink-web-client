@@ -1,6 +1,7 @@
-import chalk from 'chalk';
-import AdmZip from 'adm-zip';
 import fs from 'fs';
+import AdmZip from 'adm-zip';
+import chalk from 'chalk';
+import pack from '../package.json' with { type: 'json' };
 
 function zipDist(version) {
   const fileBaseName = `shlink-web-client_${version}_dist`;
@@ -24,7 +25,7 @@ function zipDist(version) {
   console.log();
 }
 
-const version = process.env.VERSION;
+const version = process.env.VERSION || pack.version;
 
 if (version) {
   zipDist(version);

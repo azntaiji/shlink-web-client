@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-24.04
@@ -14,14 +17,25 @@ jobs:
       - name: Use node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 24.14
+          node-version: 26.x
+      - name: Check release version matches tag
+        run: |
+          node --input-type=module -e "import pack from './package.json' with { type: 'json' }; if (process.env.GITHUB_REF_NAME !== 'v' + pack.version) throw new Error('Tag must match package.json version');"
       - name: Generate release assets
         run: npm ci && VERSION=${GITHUB_REF#refs/tags/v} node --run build:dist
       - name: Publish release with assets
-        uses: docker://antonyurchenko/git-release:latest
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ALLOW_EMPTY_CHANGELOG: "true"
-        with:
-          args: |
-            dist/shlink-web-client_*_dist.zip
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          release_flags=()
+          if [[ "$GITHUB_REF_NAME" == *-* ]]; then
+            release_flags+=(--prerelease --latest=false)
+          fi
+          release_notes=(--generate-notes)
+          notes_path="docs/releases/${GITHUB_REF_NAME#v}.md"
+          if [[ -f "$notes_path" ]]; then
+            release_notes=(--notes-file "$notes_path")
+          fi
+          gh release create "$GITHUB_REF_NAME" dist/*.zip --verify-tag \
+            --title "Steelhead ${GITHUB_REF_NAME#v}" "${release_notes[@]}" "${release_flags[@]}"
